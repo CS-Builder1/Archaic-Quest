@@ -1,5 +1,12 @@
 # Archaic Quest — Vertical Slice Acceptance Tests
 
+## Gate M0 — Project Skeleton
+
+- [x] Godot project opens with `OuterCaldera` as the main scene.
+- [x] `OuterCaldera` placeholder arena scene exists and runs locally.
+- [x] Player scene exists and is wired to `PlayerController` and `PlayerInputIntent`.
+- [x] Debug overlay shell is visible and reports movement/intent state.
+
 ## Gate A — Combat Greenlight
 
 The build cannot move beyond single-class combat until these pass.

@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerController.gd" id="1_pc"]
+[ext_resource type="Script" path="res://scripts/player/PlayerInputIntent.gd" id="2_pi"]
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_pc")
+
+[node name="PlayerInputIntent" type="Node" parent="."]
+script = ExtResource("2_pi")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
