@@ -17,11 +17,13 @@ func _build_debug_text() -> String:
 	var intent := player.input_intent
 	return "\n".join([
 		"Archaic Quest Prototype Debug",
-		"State: %s" % player.state,
+		"State: %s" % player.get_state_name(),
+		"Buffered Action: %s" % player.get_buffered_action_name(),
 		"Velocity: (%.1f, %.1f)" % [player.velocity.x, player.velocity.y],
 		"Facing: (%.2f, %.2f)" % [player.facing_direction.x, player.facing_direction.y],
 		"Move Intent: (%.2f, %.2f)" % [intent.move_vector.x, intent.move_vector.y],
 		"Aim: (%.1f, %.1f)" % [intent.aim_world_position.x, intent.aim_world_position.y],
+		"Primary Intent: %s" % str(intent.wants_primary),
 		"Dodge Intent: %s" % str(intent.wants_dodge),
 		"Reload Scene: R"
 	])
