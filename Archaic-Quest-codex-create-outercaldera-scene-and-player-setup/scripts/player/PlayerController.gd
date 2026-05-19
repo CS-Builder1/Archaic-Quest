@@ -21,7 +21,7 @@ func _physics_process(delta: float) -> void:
 	_update_state(delta)
 	move_and_slide()
 
-	if Input.is_action_just_pressed("reload_test_scene"):
+	if input_intent.wants_reload_test_scene:
 		get_tree().reload_current_scene()
 
 func _update_facing() -> void:

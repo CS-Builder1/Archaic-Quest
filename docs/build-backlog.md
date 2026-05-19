@@ -4,6 +4,8 @@
 
 Goal: create a clean project that supports rapid testing.
 
+Status: COMPLETE. See Gate M0 in `docs/acceptance-tests.md`.
+
 | ID | Task | Priority | Done When |
 |---|---|---|---|
 | M0-001 | Create Godot project repo | P0 | Repo has `project.godot` and opens in Godot 4.x |

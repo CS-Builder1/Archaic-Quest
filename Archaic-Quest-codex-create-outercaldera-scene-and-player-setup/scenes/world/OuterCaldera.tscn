@@ -7,9 +7,9 @@
 
 [node name="ArenaPlaceholder" type="ColorRect" parent="." unique_id=1658100029]
 offset_left = -963.0
-offset_top = -543.0
+offset_top = -548.0
 offset_right = 957.0
-offset_bottom = 537.0
+offset_bottom = 532.0
 color = Color(0.08, 0.07, 0.06, 1)
 
 [node name="Player" parent="." unique_id=509354241 instance=ExtResource("1_player")]

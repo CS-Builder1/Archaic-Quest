@@ -2,9 +2,12 @@
 
 ## Gate M0 — Project Skeleton
 
+Status: COMPLETE. Manual run verified 2026-05-19: project opens, arena runs, player marker is visible, movement/dodge input responds, and the debug overlay reports state/velocity/facing/intent.
+
 - [x] Godot project opens with `OuterCaldera` as the main scene.
 - [x] `OuterCaldera` placeholder arena scene exists and runs locally.
 - [x] Player scene exists and is wired to `PlayerController` and `PlayerInputIntent`.
+- [x] Player scene has a visible facing marker and collision shape for local tuning.
 - [x] Debug overlay shell is visible and reports movement/intent state.
 
 ## Gate A — Combat Greenlight
