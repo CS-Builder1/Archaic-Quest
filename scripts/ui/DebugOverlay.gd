@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 @onready var label: Label = $MarginContainer/DebugLabel
-@onready var player: PlayerController = get_node_or_null("../Player")
+@onready var player = get_node_or_null("../Player")
 
 func _process(_delta: float) -> void:
 	if DebugFlags.show_debug_overlay:
@@ -14,7 +14,7 @@ func _build_debug_text() -> String:
 	if player == null:
 		return "Debug Overlay\nPlayer: missing"
 
-	var intent := player.input_intent
+	var intent = player.input_intent
 	return "\n".join([
 		"Archaic Quest Prototype Debug",
 		"State: %s" % player.get_state_name(),

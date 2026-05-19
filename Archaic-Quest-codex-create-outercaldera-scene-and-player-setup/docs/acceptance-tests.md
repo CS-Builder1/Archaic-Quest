@@ -10,6 +10,18 @@ Status: COMPLETE. Manual run verified 2026-05-19: project opens, arena runs, pla
 - [x] Player scene has a visible facing marker and collision shape for local tuning.
 - [x] Debug overlay shell is visible and reports movement/intent state.
 
+
+## Gate M1 — Input Intent Lock + State Gating
+
+Status: COMPLETE. Manual run verified 2026-05-19: PlayerInputIntent remains the only physical input collector, player state transitions are explicit, attack/dodge inputs buffer, and dodge cannot bypass attack recovery.
+
+- [x] `PlayerInputIntent` is the sole physical input collection layer for player gameplay actions.
+- [x] Player state constants/enum exist for movement, attack windows, dodge, and recovery gates.
+- [x] `can_move()`, `can_dodge()`, `can_start_attack()`, and `can_buffer_attack()` are implemented and actively used.
+- [x] Primary attack and dodge input buffering exists with a short timeout.
+- [x] Dodge cannot bypass attack recovery via direct or buffered inputs.
+- [x] Debug overlay shows current state, facing direction, move vector, and buffered action.
+
 ## Gate A — Combat Greenlight
 
 The build cannot move beyond single-class combat until these pass.

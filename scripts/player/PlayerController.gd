@@ -27,15 +27,15 @@ enum BufferedAction {
 @export var input_buffer_duration: float = 0.2
 
 @onready var camera: Camera2D = $Camera2D
-@onready var input_intent: PlayerInputIntent = $PlayerInputIntent
+@onready var input_intent = $PlayerInputIntent
 
 var facing_direction: Vector2 = Vector2.RIGHT
-var state: PlayerState = PlayerState.IDLE
+var state: int = PlayerState.IDLE
 var dodge_timer: float = 0.0
 var recovery_timer: float = 0.0
 var attack_timer: float = 0.0
 var last_move_vector: Vector2 = Vector2.RIGHT
-var buffered_action: BufferedAction = BufferedAction.NONE
+var buffered_action: int = BufferedAction.NONE
 var buffered_action_timer: float = 0.0
 
 func _physics_process(delta: float) -> void:
@@ -49,7 +49,7 @@ func _physics_process(delta: float) -> void:
 		get_tree().reload_current_scene()
 
 func _update_facing() -> void:
-	var to_mouse := input_intent.aim_world_position - global_position
+	var to_mouse: Vector2 = input_intent.aim_world_position - global_position
 	if to_mouse.length() > 1.0:
 		facing_direction = to_mouse.normalized()
 		rotation = facing_direction.angle()
@@ -150,7 +150,7 @@ func _start_dodge() -> void:
 	dodge_timer = dodge_duration
 	velocity = last_move_vector * dodge_speed
 
-func _buffer_action(action: BufferedAction) -> void:
+func _buffer_action(action: int) -> void:
 	if action == BufferedAction.PRIMARY_ATTACK and not can_buffer_attack():
 		return
 	buffered_action = action

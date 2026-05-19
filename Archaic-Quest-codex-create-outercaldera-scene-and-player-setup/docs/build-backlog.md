@@ -21,6 +21,8 @@ Status: COMPLETE. See Gate M0 in `docs/acceptance-tests.md`.
 
 Goal: implement the control spine.
 
+Status: P0 COMPLETE. See Gate M1 in `docs/acceptance-tests.md`; P1 sprint/controller mapping remains deferred.
+
 | ID | Task | Priority | Done When |
 |---|---|---|---|
 | M1-001 | Implement WASD movement | P0 | Player moves predictably in arena |
