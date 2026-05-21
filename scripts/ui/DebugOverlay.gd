@@ -24,13 +24,18 @@ func _process(_delta: float) -> void:
 		max_stagger = player_sc.stagger_threshold
 
 	var weapon: Dictionary = player._get_active_weapon()
+	var m5_lines := player.get_debug_overlay_lines()
 	label.text = "\n".join([
+		m5_lines[0],
+		m5_lines[1],
+		m5_lines[2],
+		m5_lines[3],
+		"---------------------------------------",
 		"Player HP: %.1f / %.1f" % [hp, max_hp],
 		"Player Stagger: %.1f / %.1f" % [stagger, max_stagger],
 		"State: %s" % player.state,
 		"Attack Phase: %s" % player.attack_phase,
 		"Hitbox Active: %s" % str(player.hitbox_active),
-		"Weapon: %s" % weapon.get("display_name", "none"),
 		"startup/active/recovery: %s/%s/%s ms" % [weapon.get("startup_ms", 0), weapon.get("active_ms", 0), weapon.get("recovery_ms", 0)],
 		"hit_stop: %s ms" % weapon.get("hit_stop_ms", 0),
 		"stagger: %s reach: %s cost: %s" % [weapon.get("stagger_value", 0), weapon.get("reach", 0), weapon.get("resource_cost", 0)],
@@ -38,5 +43,4 @@ func _process(_delta: float) -> void:
 		"Last Hit Target: %s" % player.last_hit_target,
 		"Last Hit Damage: %d" % player.last_hit_damage,
 		"Last Stagger Applied: %.1f" % player.last_stagger_applied,
-		"Swap Weapon: RMB"
 	])

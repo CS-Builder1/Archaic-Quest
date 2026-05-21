@@ -26,6 +26,23 @@ var recovery_timer: float = 0.0
 var last_move_vector: Vector2 = Vector2.RIGHT
 
 # Class Switching & Weapon Systems (M5 implementation)
+const CLASS_BARBARIAN := "Barbarian"
+const CLASS_ARCHER := "Archer"
+const CLASS_MAGE := "Mage"
+
+const CLASS_ORDER := [CLASS_BARBARIAN, CLASS_ARCHER, CLASS_MAGE]
+const CLASS_WEAPONS := {
+	CLASS_BARBARIAN: ["Heavy Axe", "Maul"],
+	CLASS_ARCHER: ["Longbow", "Shortbow"],
+	CLASS_MAGE: ["Fire Staff", "Ember Focus"]
+}
+
+var active_class: String = CLASS_BARBARIAN
+var active_weapon_index: int = 0
+var rage: float = 0.0
+var focus: float = 100.0
+var mana: float = 100.0
+
 var combat_class: String = "barbarian"
 var class_cycle: Array[String] = ["barbarian", "archer", "mage"]
 var class_index: int = 0
@@ -133,15 +150,25 @@ func _ready() -> void:
 		attack_collision.disabled = true
 
 func _process(_delta: float) -> void:
-	if input_intent.wants_switch_class:
-		_switch_class(1)
-	if input_intent.wants_switch_weapon:
-		_cycle_weapon()
-	elif input_intent.wants_secondary and attack_phase == "idle":
-		_cycle_weapon() # Preservation of M3 RMB weapon swap
+	if input_intent.wants_switch_class_1:
+		_set_class(CLASS_BARBARIAN)
+	elif input_intent.wants_switch_class_2:
+		_set_class(CLASS_ARCHER)
+	elif input_intent.wants_switch_class_3:
+		_set_class(CLASS_MAGE)
+	elif input_intent.wants_cycle_class:
+		var next_index := (CLASS_ORDER.find(active_class) + 1) % CLASS_ORDER.size()
+		_set_class(CLASS_ORDER[next_index])
+
+	if input_intent.wants_secondary and attack_phase == "idle":
+		_cycle_weapon() # RMB weapon swap
 
 func _physics_process(delta: float) -> void:
 	input_intent.collect_intent(camera)
+	
+	if mana_component != null:
+		mana = mana_component.current_mana
+		
 	_update_facing()
 	_update_attack_state(delta)
 	_update_state(delta)
@@ -153,7 +180,7 @@ func _physics_process(delta: float) -> void:
 	if hitbox_active and combat_class == "barbarian":
 		_resolve_hits()
 
-	if Input.is_action_just_pressed("reload_test_scene"):
+	if input_intent.wants_reload_scene:
 		get_tree().reload_current_scene()
 
 func _update_facing() -> void:
@@ -242,11 +269,12 @@ func _update_attack_state(delta: float) -> void:
 func _start_attack() -> void:
 	if attack_phase != "idle":
 		return
-	var weapon := get_active_weapon()
+	var weapon := _get_active_weapon_dict()
 	if weapon.is_empty():
 		return
 	if !_spend_resource_for_weapon(weapon):
 		return
+	_update_resources_on_attack()
 	queued_attack_payload = weapon.duplicate(true)
 	attack_weapon = queued_attack_payload
 	attack_phase = "startup"
@@ -409,14 +437,16 @@ func _spend_resource_for_weapon(weapon: Dictionary) -> bool:
 		return stamina.spend(cost)
 	return true
 
-func _switch_class(direction: int) -> void:
-	if attack_phase != "idle":
+func _set_class(new_class: String) -> void:
+	if active_class == new_class:
 		return
-	class_index = posmod(class_index + direction, class_cycle.size())
-	combat_class = class_cycle[class_index]
+	active_class = new_class
+	combat_class = active_class.to_lower()
+	class_index = CLASS_ORDER.find(active_class)
+	active_weapon_index = int(weapon_index_by_class.get(combat_class, 0))
 	class_state_label = "ready"
-	# Reset/configure weapon size & area for the newly selected class's active weapon
 	_configure_attack_shape()
+	EventBus.debug_message.emit("Class switched to %s. Active weapon: %s" % [active_class, get_active_weapon()])
 
 func _cycle_weapon() -> void:
 	if attack_phase != "idle":
@@ -424,10 +454,13 @@ func _cycle_weapon() -> void:
 	var weapon_ids: Array = class_weapons.get(combat_class, [])
 	if weapon_ids.is_empty():
 		return
-	weapon_index_by_class[combat_class] = posmod(int(weapon_index_by_class.get(combat_class, 0)) + 1, weapon_ids.size())
+	var new_idx := posmod(int(weapon_index_by_class.get(combat_class, 0)) + 1, weapon_ids.size())
+	weapon_index_by_class[combat_class] = new_idx
+	active_weapon_index = new_idx
 	_configure_attack_shape()
+	EventBus.debug_message.emit("Weapon swapped to %s" % get_active_weapon())
 
-func get_active_weapon() -> Dictionary:
+func _get_active_weapon_dict() -> Dictionary:
 	var weapon_ids: Array = class_weapons.get(combat_class, [])
 	if weapon_ids.is_empty():
 		return {}
@@ -436,10 +469,36 @@ func get_active_weapon() -> Dictionary:
 	return weapons_by_id.get(weapon_id, {})
 
 func _get_active_weapon() -> Dictionary:
-	return get_active_weapon()
+	return _get_active_weapon_dict()
+
+func get_active_weapon() -> String:
+	var weapons: Array = CLASS_WEAPONS.get(active_class, [])
+	if weapons.is_empty():
+		return "Unarmed"
+	return str(weapons[active_weapon_index])
+
+func get_debug_overlay_lines() -> PackedStringArray:
+	var class_hint := "[1] Barbarian [2] Archer [3] Mage | [C] Cycle | RMB Swap"
+	var resources := "Rage %.0f | Focus %.0f | Mana %.0f" % [rage, focus, mana]
+	return PackedStringArray([
+		"Class: %s" % active_class,
+		"Weapon: %s" % get_active_weapon(),
+		"Switch: %s" % class_hint,
+		"Resources: %s" % resources
+	])
+
+func _update_resources_on_attack() -> void:
+	match active_class:
+		CLASS_BARBARIAN:
+			rage = min(rage + 15.0, 100.0)
+		CLASS_ARCHER:
+			focus = max(focus - 10.0, 0.0)
+		CLASS_MAGE:
+			if mana_component == null:
+				mana = max(mana - 12.0, 0.0)
 
 func _configure_attack_shape() -> void:
-	var weapon := get_active_weapon()
+	var weapon := _get_active_weapon_dict()
 	if weapon.is_empty() or attack_area == null or attack_collision == null:
 		return
 	var reach := float(weapon.get("reach", 2.0))
@@ -478,7 +537,7 @@ func _update_visuals() -> void:
 
 func _draw() -> void:
 	# Render the dynamic weapon indicator overlays (startup windup, active slice/bloom/arrow path)
-	var weapon := get_active_weapon()
+	var weapon := _get_active_weapon_dict()
 	if weapon.is_empty():
 		return
 
