@@ -23,7 +23,7 @@ func _process(_delta: float) -> void:
 		stagger = player_sc.current_stagger
 		max_stagger = player_sc.stagger_threshold
 
-	var weapon := player._get_active_weapon()
+	var weapon: Dictionary = player._get_active_weapon()
 	label.text = "\n".join([
 		"Player HP: %.1f / %.1f" % [hp, max_hp],
 		"Player Stagger: %.1f / %.1f" % [stagger, max_stagger],
