@@ -29,6 +29,7 @@ The build cannot move beyond single-class combat until these pass.
 - [ ] Mage depends on cast windows, mana pressure, and AoE placement.
 - [ ] Each class has two weapons.
 - [ ] Each weapon changes timing, recovery, resource pressure, or threat behavior.
+- [ ] Debug controls can switch classes (1/2/3 or cycle) and show class + weapon + resource values in overlay.
 
 ## Gate D — AI Readability
 
@@ -79,4 +80,3 @@ The slice passes only if all are true:
 6. Death creates tension without rage-quit punishment.
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
-
