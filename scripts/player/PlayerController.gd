@@ -349,7 +349,7 @@ func _apply_radius_damage(center: Vector2, radius: float, amount: int, stagger_a
 			if dist <= radius:
 				var hurtbox = target.get_node_or_null("HurtboxComponent")
 				if hurtbox is HurtboxComponent:
-					var target_name := target.name
+					var target_name: String = target.name
 					if active_window_hit_targets.has(target_name):
 						continue
 					active_window_hit_targets[target_name] = true
@@ -375,7 +375,7 @@ func _resolve_hits() -> void:
 	for body in areas:
 		if body is HurtboxComponent:
 			var parent = body.get_parent()
-			var target_name := parent.name if parent else body.name
+			var target_name: String = parent.name if parent else body.name
 			if active_window_hit_targets.has(target_name):
 				continue
 			active_window_hit_targets[target_name] = true
@@ -534,7 +534,7 @@ func _draw() -> void:
 
 	# Global un-rotated drawing for lingering Mage burn zones (fire pools)
 	for area in active_areas:
-		var local_center := (area["center"] - global_position).rotated(-rotation)
+		var local_center: Vector2 = (area["center"] - global_position).rotated(-rotation)
 		draw_circle(local_center, area["radius"], Color("e53e3e", 0.15))
 		draw_arc(local_center, area["radius"], 0, TAU, 32, Color("ecc94b", 0.45), 1.5)
 
