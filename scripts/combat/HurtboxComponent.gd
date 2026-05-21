@@ -25,7 +25,7 @@ func receive_hit(payload: Dictionary) -> bool:
 	if stagger_component:
 		stagger_component.apply_stagger(float(payload.get("stagger", 0.0)), payload)
 	EventBus.emit_combat("hurtbox_hit", {
-		"target": get_parent().name if get_parent() else name,
+		"target": str(get_parent().name) if get_parent() else str(name),
 		"attack_id": str(payload.get("attack_id", "unknown")),
 		"damage": int(payload.get("damage", 0)),
 	})

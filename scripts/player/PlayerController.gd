@@ -118,6 +118,12 @@ func _on_hit_stop_requested(duration: float) -> void:
 	hit_stop_timer = maxf(hit_stop_timer, duration)
 
 func _emit_debug_overlay_snapshot() -> void:
+	var last_hit := {}
+	if hitbox_component and not hitbox_component.last_hit_payload.is_empty():
+		last_hit = hitbox_component.last_hit_payload
+	elif hurtbox_component:
+		last_hit = hurtbox_component.last_hit_payload
+
 	var snapshot := {
 		"player_state": state,
 		"attack_phase": attack_state_machine.state,
@@ -126,7 +132,7 @@ func _emit_debug_overlay_snapshot() -> void:
 		"attack_id": attack_state_machine.attack_id,
 		"stamina": snappedf(stamina_component.current_stamina, 0.01),
 		"stagger": snappedf(stagger_component.current_stagger, 0.01),
-		"last_hit_payload": hitbox_component.last_hit_payload if !hitbox_component.last_hit_payload.is_empty() else hurtbox_component.last_hit_payload,
+		"last_hit_payload": last_hit,
 	}
 	EventBus.debug_message.emit("Overlay: %s" % str(snapshot))
 

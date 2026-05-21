@@ -1,10 +1,22 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/PlayerController.gd" id="1_pc"]
 [ext_resource type="Script" path="res://scripts/player/PlayerInputIntent.gd" id="2_pi"]
+[ext_resource type="Script" path="res://scripts/combat/StaminaComponent.gd" id="3_stamina"]
+[ext_resource type="Script" path="res://scripts/combat/AttackStateMachine.gd" id="4_attack"]
+[ext_resource type="Script" path="res://scripts/combat/HitboxComponent.gd" id="5_hitbox"]
+[ext_resource type="Script" path="res://scripts/combat/StaggerComponent.gd" id="6_stagger"]
+[ext_resource type="Script" path="res://scripts/combat/HurtboxComponent.gd" id="7_hurtbox"]
+[ext_resource type="Script" path="res://scripts/combat/HealthComponent.gd" id="8_health"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
+radius = 32.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurtbox"]
+radius = 14.0
 
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_pc")
@@ -23,3 +35,35 @@ script = ExtResource("2_pi")
 enabled = true
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="StaminaComponent" type="Node" parent="."]
+script = ExtResource("3_stamina")
+
+[node name="AttackStateMachine" type="Node" parent="."]
+script = ExtResource("4_attack")
+
+[node name="HitboxComponent" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 4
+monitoring = false
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent"]
+shape = SubResource("CircleShape2D_hitbox")
+
+[node name="StaggerComponent" type="Node" parent="."]
+script = ExtResource("6_stagger")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("8_health")
+
+[node name="HurtboxComponent" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 2
+monitorable = true
+script = ExtResource("7_hurtbox")
+health_path = NodePath("../HealthComponent")
+stagger_path = NodePath("../StaggerComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
+shape = SubResource("CircleShape2D_hurtbox")
