@@ -159,4 +159,3 @@ func _update_visuals() -> void:
 		body_visual.color = Color(0.2, 0.8, 1.0) # Dodge Cyan
 	else:
 		body_visual.color = Color(0.83, 0.36, 0.18) # Default Rust Red
-
