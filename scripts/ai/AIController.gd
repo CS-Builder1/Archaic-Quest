@@ -35,6 +35,7 @@ func set_role_behavior(behavior: RoleBehavior) -> void:
 	_setup_visuals_and_physics()
 
 func _setup_visuals_and_physics() -> void:
+	add_to_group("enemies")
 	# Clean up any existing visuals/collision first to prevent duplicates
 	var old_visual = get_node_or_null("BodyVisual")
 	if old_visual:
