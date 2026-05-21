@@ -13,6 +13,7 @@ class_name PlayerController
 @onready var hitbox_component: HitboxComponent = $HitboxComponent
 @onready var stagger_component: StaggerComponent = $StaggerComponent
 @onready var hurtbox_component: HurtboxComponent = $HurtboxComponent
+@onready var body_visual: Polygon2D = $BodyVisual
 
 var facing_direction: Vector2 = Vector2.RIGHT
 var state: String = "IDLE"
@@ -40,6 +41,7 @@ func _physics_process(delta: float) -> void:
 	_update_facing()
 	_update_state(delta)
 	move_and_slide()
+	_update_visuals()
 	_emit_debug_overlay_snapshot()
 
 	if input_intent.wants_reload_test_scene:
@@ -143,3 +145,18 @@ func get_buffered_action_name() -> String:
 	if attack_state_machine._queued_primary:
 		return "PRIMARY_ATTACK"
 	return "NONE"
+
+func _update_visuals() -> void:
+	if body_visual == null:
+		return
+	if attack_state_machine.state == "STARTUP":
+		body_visual.color = Color(1.0, 0.8, 0.2) # Gold/Yellow for startup window
+	elif attack_state_machine.state == "ACTIVE":
+		body_visual.color = Color(1.0, 0.2, 0.2) # Red/Active hit window
+	elif attack_state_machine.state == "RECOVERY":
+		body_visual.color = Color(0.5, 0.5, 0.6) # Muted Gray/Recovery window
+	elif state == "DODGING":
+		body_visual.color = Color(0.2, 0.8, 1.0) # Dodge Cyan
+	else:
+		body_visual.color = Color(0.83, 0.36, 0.18) # Default Rust Red
+
