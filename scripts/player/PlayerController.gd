@@ -22,6 +22,7 @@ var last_move_vector: Vector2 = Vector2.RIGHT
 var hit_stop_timer: float = 0.0
 
 const PRIMARY_ATTACK_COST: float = 20.0
+const DODGE_COST: float = 25.0
 
 func _ready() -> void:
 	hitbox_component.owner_actor = self
@@ -41,7 +42,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_emit_debug_overlay_snapshot()
 
-	if Input.is_action_just_pressed("reload_test_scene"):
+	if input_intent.wants_reload_test_scene:
 		get_tree().reload_current_scene()
 
 func _process_hit_stop(delta: float) -> bool:
@@ -86,6 +87,14 @@ func _update_state(delta: float) -> void:
 			state = "IDLE"
 		return
 
+	# If we are actively attacking, check attack machine phase
+	if attack_state_machine.state in ["STARTUP", "ACTIVE"]:
+		velocity = Vector2.ZERO
+		return
+	elif attack_state_machine.state == "RECOVERY":
+		velocity = input_intent.move_vector * (move_speed * 0.35)
+		return
+
 	if input_intent.move_vector.length() > 0.01:
 		last_move_vector = input_intent.move_vector.normalized()
 		velocity = input_intent.move_vector * move_speed
@@ -95,9 +104,11 @@ func _update_state(delta: float) -> void:
 		state = "IDLE"
 
 	if input_intent.wants_dodge:
-		state = "DODGING"
-		dodge_timer = dodge_duration
-		velocity = last_move_vector * dodge_speed
+		if stamina_component.current_stamina >= DODGE_COST:
+			if stamina_component.spend(DODGE_COST):
+				state = "DODGING"
+				dodge_timer = dodge_duration
+				velocity = last_move_vector * dodge_speed
 
 func _on_valid_hit(_payload: Dictionary) -> void:
 	# Placeholder hook for future VFX/SFX.
@@ -118,3 +129,11 @@ func _emit_debug_overlay_snapshot() -> void:
 		"last_hit_payload": hitbox_component.last_hit_payload if !hitbox_component.last_hit_payload.is_empty() else hurtbox_component.last_hit_payload,
 	}
 	EventBus.debug_message.emit("Overlay: %s" % str(snapshot))
+
+func get_state_name() -> String:
+	return state
+
+func get_buffered_action_name() -> String:
+	if attack_state_machine._queued_primary:
+		return "PRIMARY_ATTACK"
+	return "NONE"

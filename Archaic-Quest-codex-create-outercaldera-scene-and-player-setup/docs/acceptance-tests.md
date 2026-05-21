@@ -102,15 +102,3 @@ The slice passes only if all are true:
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
 
-
-
-## M2 — Attack Loop + Hit Validation (Issue #7)
-
-- [x] Primary attack runs Startup → Active → Recovery → Idle.
-- [x] Hitbox is only active during Active.
-- [x] Recovery cannot be skipped by repeated primary input.
-- [x] Valid hit damages a hurtbox target.
-- [x] Valid hit adds stagger.
-- [x] Same attack cannot hit the same target multiple times in one active window.
-- [x] Hit-stop triggers briefly on impact.
-- [x] Debug overlay includes player state, attack phase/timer, weapon/attack id, stamina, stagger, and last hit payload.
