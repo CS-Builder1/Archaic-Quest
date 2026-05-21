@@ -1,5 +1,27 @@
 # Archaic Quest — Vertical Slice Acceptance Tests
 
+## Gate M0 — Project Skeleton
+
+Status: COMPLETE. Manual run verified 2026-05-19: project opens, arena runs, player marker is visible, movement/dodge input responds, and the debug overlay reports state/velocity/facing/intent.
+
+- [x] Godot project opens with `OuterCaldera` as the main scene.
+- [x] `OuterCaldera` placeholder arena scene exists and runs locally.
+- [x] Player scene exists and is wired to `PlayerController` and `PlayerInputIntent`.
+- [x] Player scene has a visible facing marker and collision shape for local tuning.
+- [x] Debug overlay shell is visible and reports movement/intent state.
+
+
+## Gate M1 — Input Intent Lock + State Gating
+
+Status: COMPLETE. Manual run verified 2026-05-19: PlayerInputIntent remains the only physical input collector, player state transitions are explicit, attack/dodge inputs buffer, and dodge cannot bypass attack recovery.
+
+- [x] `PlayerInputIntent` is the sole physical input collection layer for player gameplay actions.
+- [x] Player state constants/enum exist for movement, attack windows, dodge, and recovery gates.
+- [x] `can_move()`, `can_dodge()`, `can_start_attack()`, and `can_buffer_attack()` are implemented and actively used.
+- [x] Primary attack and dodge input buffering exists with a short timeout.
+- [x] Dodge cannot bypass attack recovery via direct or buffered inputs.
+- [x] Debug overlay shows current state, facing direction, move vector, and buffered action.
+
 ## Gate A — Combat Greenlight
 
 The build cannot move beyond single-class combat until these pass.
@@ -80,3 +102,15 @@ The slice passes only if all are true:
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
 
+
+
+## M2 — Attack Loop + Hit Validation (Issue #7)
+
+- [x] Primary attack runs Startup → Active → Recovery → Idle.
+- [x] Hitbox is only active during Active.
+- [x] Recovery cannot be skipped by repeated primary input.
+- [x] Valid hit damages a hurtbox target.
+- [x] Valid hit adds stagger.
+- [x] Same attack cannot hit the same target multiple times in one active window.
+- [x] Hit-stop triggers briefly on impact.
+- [x] Debug overlay includes player state, attack phase/timer, weapon/attack id, stamina, stagger, and last hit payload.

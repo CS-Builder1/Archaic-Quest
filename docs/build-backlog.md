@@ -4,6 +4,8 @@
 
 Goal: create a clean project that supports rapid testing.
 
+Status: COMPLETE. See Gate M0 in `docs/acceptance-tests.md`.
+
 | ID | Task | Priority | Done When |
 |---|---|---|---|
 | M0-001 | Create Godot project repo | P0 | Repo has `project.godot` and opens in Godot 4.x |
@@ -19,6 +21,8 @@ Goal: create a clean project that supports rapid testing.
 
 Goal: implement the control spine.
 
+Status: P0 COMPLETE. See Gate M1 in `docs/acceptance-tests.md`; P1 sprint/controller mapping remains deferred.
+
 | ID | Task | Priority | Done When |
 |---|---|---|---|
 | M1-001 | Implement WASD movement | P0 | Player moves predictably in arena |
@@ -33,6 +37,8 @@ Goal: implement the control spine.
 ## Milestone 2 — Combat Actor Foundation
 
 Goal: make combat real before adding content.
+
+Status: COMPLETE. See Gate M2 in docs/acceptance-tests.md.
 
 | ID | Task | Priority | Done When |
 |---|---|---|---|

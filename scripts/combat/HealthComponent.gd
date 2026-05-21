@@ -16,13 +16,13 @@ func apply_damage(amount: int, source: Node = null) -> void:
 	current_health = maxi(current_health - amount, 0)
 	damaged.emit(amount, source)
 	EventBus.emit_combat("damage_applied", {
-		"target": get_parent().name if get_parent() else "unknown",
+		"target": str(get_parent().name) if get_parent() else "unknown",
 		"amount": amount,
 	})
 	if current_health <= 0:
 		died.emit(source)
 		EventBus.emit_combat("actor_died", {
-			"target": get_parent().name if get_parent() else "unknown",
+			"target": str(get_parent().name) if get_parent() else "unknown",
 		})
 
 func heal(amount: int) -> void:
