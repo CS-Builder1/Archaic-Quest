@@ -39,6 +39,8 @@ The build cannot move beyond single-class combat until these pass.
 - [ ] Support protection behavior works.
 - [ ] Skirmishers punish tunnel vision.
 - [ ] AI behavior is not just nearest-target aggro.
+- [ ] Formation encounter scene contains Brute + Scavenger + Tender operating together.
+- [ ] Debug readout shows each AI state and current target.
 
 ## Gate E — Item / Crafting Proof
 
