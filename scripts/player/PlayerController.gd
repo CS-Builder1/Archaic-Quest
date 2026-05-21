@@ -373,7 +373,7 @@ func _resolve_hits() -> void:
 		return
 	var areas := attack_area.get_overlapping_areas()
 	for body in areas:
-		if body is HurtboxComponent:
+		if is_instance_valid(body) and body is HurtboxComponent:
 			var parent = body.get_parent()
 			var target_name: String = parent.name if parent else body.name
 			if active_window_hit_targets.has(target_name):
