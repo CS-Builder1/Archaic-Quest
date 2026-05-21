@@ -30,7 +30,11 @@ func apply_hit(damage: int, stagger_amount: float, source: Node) -> void:
 	
 	# Visual juicy feedback: flash red on hit
 	var visual = get_node_or_null("DummyVisual")
+	if visual == null:
+		visual = get_parent().get_node_or_null("BodyVisual")
 	if visual is Polygon2D:
-		visual.color = Color("c93d3d") # flash red
+		var orig_color: Color = visual.color
+		visual.color = Color("ff4a4a") # juicy glowing red flash
 		await get_tree().create_timer(0.08, true, false, true).timeout
-		visual.color = Color("3a6b5c") # back to sage green
+		visual.color = orig_color
+

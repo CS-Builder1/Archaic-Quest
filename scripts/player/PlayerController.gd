@@ -31,6 +31,7 @@ var last_stagger_applied: float = 0.0
 var attack_weapon: Dictionary = {}
 
 func _ready() -> void:
+	add_to_group("player")
 	# Programmatic visual representation for the player
 	var poly := Polygon2D.new()
 	poly.name = "BodyVisual"
@@ -208,3 +209,16 @@ func _get_active_weapon() -> Dictionary:
 	if weapons.is_empty() or active_weapon_index < 0 or active_weapon_index >= weapons.size():
 		return {}
 	return weapons[active_weapon_index]
+
+# Threat Model Candidate Interface
+func is_alive() -> bool:
+	return true
+
+func get_health_ratio() -> float:
+	return 1.0
+
+func get_recent_damage_output() -> float:
+	return 0.75
+
+func get_focus_value() -> float:
+	return 0.5
