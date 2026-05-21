@@ -10,6 +10,7 @@ var target_actor: Node2D = null
 var threat_model: ThreatModel = ThreatModel.new()
 var role_behavior: RoleBehavior = RoleBehavior.new()
 var known_targets: Array[Node2D] = []
+var attack_cooldown: float = 0.0
 
 @onready var state_label: Label = get_node_or_null("DebugStateLabel")
 
@@ -20,6 +21,12 @@ func _physics_process(delta: float) -> void:
 	velocity = role_behavior.get_desired_velocity(self)
 	move_and_slide()
 	_update_debug_readout()
+	
+	if attack_cooldown > 0.0:
+		attack_cooldown -= delta
+	else:
+		_check_ai_attacks()
+
 
 func set_role_behavior(behavior: RoleBehavior) -> void:
 	if behavior == null:
@@ -137,3 +144,29 @@ func _update_debug_readout() -> void:
 func is_alive() -> bool:
 	var hc = get_node_or_null("HealthComponent")
 	return hc.current_health > 0 if hc else true
+
+func _check_ai_attacks() -> void:
+	if target_actor == null:
+		return
+	var distance := global_position.distance_to(target_actor.global_position)
+	var role_name := role_behavior.get_role_name()
+	
+	if role_name == "Bruiser" and distance < 65.0:
+		_perform_ai_strike(30, 45.0, 1.6) # 30 damage, 45 stagger, 1.6s cooldown
+	elif role_name == "Skirmisher" and distance < 55.0:
+		_perform_ai_strike(12, 15.0, 0.9) # 12 damage, 15 stagger, 0.9s cooldown
+
+func _perform_ai_strike(damage_val: int, stagger_val: float, cooldown_val: float) -> void:
+	attack_cooldown = cooldown_val
+	
+	var visual = get_node_or_null("BodyVisual")
+	if visual is Polygon2D:
+		var orig_color: Color = visual.color
+		visual.color = Color("ffffff") # white flash
+		var t = get_tree().create_timer(0.12, true, false, true)
+		t.timeout.connect(func(): if is_instance_valid(visual): visual.color = orig_color)
+	
+	var target_hb = target_actor.get_node_or_null("HurtboxComponent")
+	if target_hb is HurtboxComponent:
+		target_hb.apply_hit(damage_val, stagger_val, self)
+

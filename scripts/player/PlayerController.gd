@@ -55,6 +55,30 @@ func _ready() -> void:
 	_set_weapon_by_id("barbarian_heavy_axe")
 	attack_collision.disabled = true
 
+	# Programmatic player combat components
+	var hc := HealthComponent.new()
+	hc.name = "HealthComponent"
+	hc.max_health = 200
+	add_child(hc)
+
+	var sc := StaggerComponent.new()
+	sc.name = "StaggerComponent"
+	sc.stagger_threshold = 100.0
+	add_child(sc)
+
+	var hb := HurtboxComponent.new()
+	hb.name = "HurtboxComponent"
+	hb.health_component_path = NodePath("../HealthComponent")
+	hb.stagger_component_path = NodePath("../StaggerComponent")
+	
+	var hb_col := CollisionShape2D.new()
+	var hb_shape := CircleShape2D.new()
+	hb_shape.radius = 18.0
+	hb_col.shape = hb_shape
+	hb.add_child(hb_col)
+	add_child(hb)
+
+
 func _physics_process(delta: float) -> void:
 	input_intent.collect_intent(camera)
 	_handle_weapon_swap_intent()
@@ -63,10 +87,14 @@ func _physics_process(delta: float) -> void:
 	_update_state(delta)
 	move_and_slide()
 	_update_visuals()
+	if hitbox_active:
+		_resolve_hits()
 	if Input.is_action_just_pressed("reload_test_scene"):
 		get_tree().reload_current_scene()
 
+
 func _update_visuals() -> void:
+	queue_redraw()
 	var visual = get_node_or_null("BodyVisual")
 	if visual is Polygon2D:
 		if state == "DODGING":
@@ -79,6 +107,34 @@ func _update_visuals() -> void:
 			visual.color = Color("718096") # premium muted slate gray
 		else:
 			visual.color = Color("bf5b30") # premium rust orange (idle/moving)
+
+func _draw() -> void:
+	if attack_phase != "NONE" and !attack_weapon.is_empty():
+		var weapon := _get_active_weapon()
+		var reach := float(weapon.get("reach", 2.0))
+		var radius := 36.0
+		var angle_span := 65.0
+		if weapon.get("id", "") == "barbarian_heavy_axe":
+			radius = 52.0
+			angle_span = 105.0
+		elif weapon.get("id", "") == "barbarian_maul":
+			radius = 46.0
+			angle_span = 55.0
+		
+		var arc_radius := radius + (reach * 8.0)
+		var center := Vector2(reach * 12.0, 0)
+		
+		if attack_phase == "STARTUP":
+			draw_arc(center, arc_radius, -deg_to_rad(angle_span/2), deg_to_rad(angle_span/2), 32, Color("ecc94b", 0.4), 2.0)
+		elif attack_phase == "ACTIVE":
+			var points := PackedVector2Array()
+			points.append(Vector2.ZERO)
+			var steps := 16
+			for i in range(steps + 1):
+				var angle := -deg_to_rad(angle_span/2) + (i * deg_to_rad(angle_span) / steps)
+				points.append(center + Vector2(cos(angle), sin(angle)) * arc_radius)
+			draw_polygon(points, [Color("ff4a4a", 0.45)])
+			draw_arc(center, arc_radius, -deg_to_rad(angle_span/2), deg_to_rad(angle_span/2), 32, Color("ff8a8a", 0.8), 3.0)
 
 func _handle_weapon_swap_intent() -> void:
 	if attack_phase == "NONE" and input_intent.wants_secondary and weapons.size() >= 2:
@@ -159,7 +215,11 @@ func _update_attack_state(delta: float) -> void:
 		attack_weapon = {}
 
 func _resolve_hits() -> void:
-	for body in attack_area.get_overlapping_areas():
+	var areas := attack_area.get_overlapping_areas()
+	if not areas.is_empty():
+		print("[HITBOX DEBUG] Overlapping areas: ", areas)
+	for body in areas:
+		print("[HITBOX DEBUG] Checking body: ", body.name, " (class: ", body.get_class(), ", script: ", body.get_script(), ")")
 		if body is HurtboxComponent:
 			var target_name := body.get_parent().name if body.get_parent() else body.name
 			if active_window_hit_targets.has(target_name):
@@ -173,6 +233,7 @@ func _resolve_hits() -> void:
 			Engine.time_scale = 0.05
 			await get_tree().create_timer(float(attack_weapon.get("hit_stop_ms", 0)) / 1000.0, true, false, true).timeout
 			Engine.time_scale = 1.0
+
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
@@ -199,11 +260,11 @@ func _configure_attack_shape() -> void:
 	elif weapon.get("id", "") == "barbarian_maul":
 		radius = 46.0
 		_angle_span = deg_to_rad(55.0)
-	var shape := CapsuleShape2D.new()
-	shape.radius = radius
-	shape.height = reach * 24.0
+	var shape := CircleShape2D.new()
+	shape.radius = radius + (reach * 8.0)
 	attack_collision.shape = shape
-	attack_area.position = Vector2((reach * 24.0) * 0.5, 0)
+	attack_area.position = Vector2(reach * 12.0, 0)
+
 
 func _get_active_weapon() -> Dictionary:
 	if weapons.is_empty() or active_weapon_index < 0 or active_weapon_index >= weapons.size():

@@ -9,20 +9,25 @@ class_name HurtboxComponent
 
 func _ready() -> void:
 	# Add a premium visual representation to the dummy
-	var poly := Polygon2D.new()
-	poly.name = "DummyVisual"
-	# Create a circle-like polygon representing the dummy
-	var points := PackedVector2Array()
-	var segments := 16
-	var radius := 28.0
-	for i in range(segments):
-		var angle := i * 2.0 * PI / segments
-		points.append(Vector2(cos(angle), sin(angle)) * radius)
-	poly.polygon = points
-	poly.color = Color("3a6b5c") # premium deep sage green
-	add_child(poly)
+	if get_parent().name == "Dummy":
+		var poly := Polygon2D.new()
+		poly.name = "DummyVisual"
+		# Create a circle-like polygon representing the dummy
+		var points := PackedVector2Array()
+		var segments := 16
+		var radius := 28.0
+		for i in range(segments):
+			var angle := i * 2.0 * PI / segments
+			points.append(Vector2(cos(angle), sin(angle)) * radius)
+		poly.polygon = points
+		poly.color = Color("3a6b5c") # premium deep sage green
+		add_child(poly)
+
 
 func apply_hit(damage: int, stagger_amount: float, source: Node) -> void:
+	if get_parent() is PlayerController and get_parent().state == "DODGING":
+		# Dodge immunity! Ignore hit.
+		return
 	if health_component != null:
 		health_component.apply_damage(damage, source)
 	if stagger_component != null:
