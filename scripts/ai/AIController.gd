@@ -10,7 +10,7 @@ var target_actor: Node2D = null
 var threat_model: ThreatModel = ThreatModel.new()
 var role_behavior: RoleBehavior = RoleBehavior.new()
 var known_targets: Array[Node2D] = []
-var attack_cooldown: float = 0.0
+var attack_cooldown: float = 1.5
 
 @onready var state_label: Label = get_node_or_null("DebugStateLabel")
 
@@ -89,14 +89,22 @@ func _setup_visuals_and_physics() -> void:
 	# Programmatic HealthComponent
 	var hc := HealthComponent.new()
 	hc.name = "HealthComponent"
-	hc.max_health = 250 if role_name == "Bruiser" else (150 if role_name == "Support" else 100)
+	if role_name == "Bruiser":
+		hc.max_health = 250
+	elif role_name == "Support":
+		hc.max_health = 150
+	else:
+		hc.max_health = 100
 	add_child(hc)
-	hc.died.connect(func(_source): queue_free())
+	hc.died.connect(_on_died)
 
 	# Programmatic StaggerComponent
 	var sc := StaggerComponent.new()
 	sc.name = "StaggerComponent"
-	sc.stagger_threshold = 120.0 if role_name == "Bruiser" else 60.0
+	if role_name == "Bruiser":
+		sc.stagger_threshold = 120.0
+	else:
+		sc.stagger_threshold = 60.0
 	add_child(sc)
 
 	# Programmatic HurtboxComponent Area2D
@@ -144,7 +152,9 @@ func _update_debug_readout() -> void:
 
 func is_alive() -> bool:
 	var hc = get_node_or_null("HealthComponent")
-	return hc.current_health > 0 if hc else true
+	if hc != null:
+		return hc.current_health > 0
+	return true
 
 func _check_ai_attacks() -> void:
 	if target_actor == null:
@@ -161,13 +171,20 @@ func _perform_ai_strike(damage_val: int, stagger_val: float, cooldown_val: float
 	attack_cooldown = cooldown_val
 	
 	var visual = get_node_or_null("BodyVisual")
-	if visual is Polygon2D:
+	if visual is Polygon2D and is_inside_tree():
 		var orig_color: Color = visual.color
 		visual.color = Color("ffffff") # white flash
-		var t = get_tree().create_timer(0.12, true, false, true)
-		t.timeout.connect(func(): if is_instance_valid(visual): visual.color = orig_color)
+		var tree := get_tree()
+		if tree != null:
+			await tree.create_timer(0.12, true, false, true).timeout
+			if is_instance_valid(visual):
+				visual.color = orig_color
 	
-	var target_hb = target_actor.get_node_or_null("HurtboxComponent")
-	if target_hb is HurtboxComponent:
-		target_hb.apply_hit(damage_val, stagger_val, self)
+	if is_inside_tree() and target_actor != null:
+		var target_hb = target_actor.get_node_or_null("HurtboxComponent")
+		if target_hb is HurtboxComponent:
+			target_hb.apply_hit(damage_val, stagger_val, self)
+
+func _on_died(_source: Node) -> void:
+	queue_free()
 

@@ -34,12 +34,20 @@ func apply_hit(damage: int, stagger_amount: float, source: Node) -> void:
 		stagger_component.apply_stagger(stagger_amount)
 	
 	# Visual juicy feedback: flash red on hit
+	if not is_inside_tree():
+		return
+	
 	var visual = get_node_or_null("DummyVisual")
 	if visual == null:
-		visual = get_parent().get_node_or_null("BodyVisual")
+		var parent = get_parent()
+		if parent != null:
+			visual = parent.get_node_or_null("BodyVisual")
+			
 	if visual is Polygon2D:
 		var orig_color: Color = visual.color
 		visual.color = Color("ff4a4a") # juicy glowing red flash
-		await get_tree().create_timer(0.08, true, false, true).timeout
-		visual.color = orig_color
-
+		var tree := get_tree()
+		if tree != null:
+			await tree.create_timer(0.08, true, false, true).timeout
+			if is_instance_valid(visual):
+				visual.color = orig_color

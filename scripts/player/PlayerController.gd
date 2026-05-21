@@ -99,11 +99,13 @@ func _ready() -> void:
 	add_child(col)
 
 	# Programmatic Player HealthComponent
-	if get_node_or_null("HealthComponent") == null:
-		var hc := HealthComponent.new()
+	var hc = get_node_or_null("HealthComponent")
+	if hc == null:
+		hc = HealthComponent.new()
 		hc.name = "HealthComponent"
 		hc.max_health = 200
 		add_child(hc)
+	hc.died.connect(_on_player_died)
 
 	# Programmatic Player StaggerComponent
 	if get_node_or_null("StaggerComponent") == null:
@@ -279,7 +281,12 @@ func _start_attack() -> void:
 	attack_weapon = queued_attack_payload
 	attack_phase = "startup"
 	attack_timer = float(weapon.get("startup_ms", 0)) / 1000.0
-	class_state_label = "draw" if combat_class == "archer" else "channel" if combat_class == "mage" else "windup"
+	if combat_class == "archer":
+		class_state_label = "draw"
+	elif combat_class == "mage":
+		class_state_label = "channel"
+	else:
+		class_state_label = "windup"
 
 	# Clear previous hit target memory for the new swing
 	active_window_hit_targets.clear()
@@ -310,17 +317,25 @@ func _fire_archer_attack(weapon: Dictionary) -> void:
 	var reach := float(weapon.get("reach", 12.0))
 	var projectile_distance := reach * 32.0
 	var impact_center := global_position + facing_direction * projectile_distance
-	var impact_radius := 24.0 if weapon.get("id", "") == "archer_longbow" else 16.0
-	var damage := 35 if weapon.get("id", "") == "archer_longbow" else 20
+	
+	var impact_radius := 16.0
+	var damage := 20
+	if weapon.get("id", "") == "archer_longbow":
+		impact_radius = 24.0
+		damage = 35
+		
 	var stagger := int(weapon.get("stagger_value", 30))
-	_apply_radius_damage(impact_center, impact_radius, damage, stagger)
+	_apply_line_damage(global_position, impact_center, impact_radius, damage, stagger)
 
 func _fire_mage_attack(weapon: Dictionary) -> void:
 	class_state_label = "aoe_bloom"
 	var reach := float(weapon.get("reach", 7.0))
 	var impact_center := global_position + facing_direction * (reach * 24.0)
-	var radius := 80.0 if weapon.get("id", "") == "mage_fire_staff" else 52.0
-	var damage := 24 if weapon.get("id", "") == "mage_fire_staff" else 15
+	var radius := 52.0
+	var damage := 15
+	if weapon.get("id", "") == "mage_fire_staff":
+		radius = 80.0
+		damage = 24
 	var stagger := int(weapon.get("stagger_value", 15))
 	
 	# Apply instant impact bloom damage
@@ -391,10 +406,60 @@ func _apply_radius_damage(center: Vector2, radius: float, amount: int, stagger_a
 
 					# Hit stop implementation for weights
 					var hit_stop_time := float(queued_attack_payload.get("hit_stop_ms", 60)) / 1000.0
-					if hit_stop_time > 0.0:
-						Engine.time_scale = 0.05
-						await get_tree().create_timer(hit_stop_time, true, false, true).timeout
-						Engine.time_scale = 1.0
+					if hit_stop_time > 0.0 and is_inside_tree():
+						var tree := get_tree()
+						if tree != null:
+							Engine.time_scale = 0.05
+							await tree.create_timer(hit_stop_time, true, false, true).timeout
+							Engine.time_scale = 1.0
+
+func _apply_line_damage(start: Vector2, end: Vector2, width: float, amount: int, stagger_amount: float = 20.0) -> void:
+	var targets: Array[Node2D] = []
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Node2D:
+			targets.append(node)
+	
+	var dummy = get_tree().current_scene.get_node_or_null("Dummy")
+	if dummy is Node2D:
+		targets.append(dummy)
+		
+	for child in get_tree().current_scene.get_children():
+		if child is AIController or child.name == "Dummy":
+			if child is Node2D and not targets.has(child):
+				targets.append(child)
+
+	for target in targets:
+		if is_instance_valid(target):
+			var ab := end - start
+			var ap := target.global_position - start
+			var ab_len_sq := ab.length_squared()
+			var t := 0.0
+			if ab_len_sq > 0.0:
+				t = clampf(ap.dot(ab) / ab_len_sq, 0.0, 1.0)
+			var closest_point := start + ab * t
+			var dist := target.global_position.distance_to(closest_point)
+			
+			if dist <= width:
+				var hurtbox = target.get_node_or_null("HurtboxComponent")
+				if hurtbox is HurtboxComponent:
+					var target_name: String = target.name
+					if active_window_hit_targets.has(target_name):
+						continue
+					active_window_hit_targets[target_name] = true
+					
+					hurtbox.apply_hit(amount, stagger_amount, self)
+					
+					last_hit_target = target_name
+					last_hit_damage = amount
+					last_stagger_applied = stagger_amount
+
+					var hit_stop_time := float(queued_attack_payload.get("hit_stop_ms", 60)) / 1000.0
+					if hit_stop_time > 0.0 and is_inside_tree():
+						var tree := get_tree()
+						if tree != null:
+							Engine.time_scale = 0.05
+							await tree.create_timer(hit_stop_time, true, false, true).timeout
+							Engine.time_scale = 1.0
 
 func _resolve_hits() -> void:
 	if attack_area == null:
@@ -403,7 +468,13 @@ func _resolve_hits() -> void:
 	for body in areas:
 		if is_instance_valid(body) and body is HurtboxComponent:
 			var parent = body.get_parent()
-			var target_name: String = parent.name if parent else body.name
+			if parent == self:
+				continue
+			var target_name: String = ""
+			if parent != null:
+				target_name = parent.name
+			else:
+				target_name = body.name
 			if active_window_hit_targets.has(target_name):
 				continue
 			active_window_hit_targets[target_name] = true
@@ -416,10 +487,12 @@ func _resolve_hits() -> void:
 			last_stagger_applied = stagger_amount
 			
 			var hit_stop_time := float(attack_weapon.get("hit_stop_ms", 80)) / 1000.0
-			if hit_stop_time > 0.0:
-				Engine.time_scale = 0.05
-				await get_tree().create_timer(hit_stop_time, true, false, true).timeout
-				Engine.time_scale = 1.0
+			if hit_stop_time > 0.0 and is_inside_tree():
+				var tree := get_tree()
+				if tree != null:
+					Engine.time_scale = 0.05
+					await tree.create_timer(hit_stop_time, true, false, true).timeout
+					Engine.time_scale = 1.0
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
@@ -581,7 +654,9 @@ func _draw() -> void:
 
 	elif combat_class == "mage" and attack_phase != "idle":
 		var cast_reach := reach * 24.0
-		var radius := 80.0 if weapon.get("id", "") == "mage_fire_staff" else 52.0
+		var radius := 52.0
+		if weapon.get("id", "") == "mage_fire_staff":
+			radius = 80.0
 		var center := Vector2(cast_reach, 0)
 		if attack_phase == "startup":
 			draw_arc(center, radius, 0, TAU, 32, Color("ecc94b", 0.55), 2.0)
@@ -610,9 +685,15 @@ func _load_weapon_data() -> void:
 
 # Threat Model Candidate Interface (Ensures AI threat calculation evaluates player accurately)
 func is_alive() -> bool:
+	var hc = get_node_or_null("HealthComponent")
+	if hc != null:
+		return hc.current_health > 0
 	return true
 
 func get_health_ratio() -> float:
+	var hc = get_node_or_null("HealthComponent")
+	if hc != null and hc.max_health > 0:
+		return float(hc.current_health) / float(hc.max_health)
 	return 1.0
 
 func get_recent_damage_output() -> float:
@@ -620,3 +701,9 @@ func get_recent_damage_output() -> float:
 
 func get_focus_value() -> float:
 	return 0.5
+
+func _on_player_died(_source: Node) -> void:
+	GameState.register_player_death()
+	EventBus.debug_message.emit("Player resurrected at watchpost! Resurrection Strain increased.")
+	# Reload current scene to simulate resurrection/respawn
+	get_tree().reload_current_scene()
