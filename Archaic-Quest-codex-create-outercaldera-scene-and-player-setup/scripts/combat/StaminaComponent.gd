@@ -1,5 +1,4 @@
 extends Node
-class_name StaminaComponent
 
 signal stamina_changed(current: float, max_value: float)
 signal exhausted()
