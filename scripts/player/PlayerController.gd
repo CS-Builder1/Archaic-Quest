@@ -28,6 +28,7 @@ var active_window_hit_targets: Dictionary = {}
 var last_hit_target: String = "-"
 var last_hit_damage: int = 0
 var last_stagger_applied: float = 0.0
+var attack_weapon: Dictionary = {}
 
 func _ready() -> void:
 	weapons = WeaponLibrary.load_barbarian_weapons()
@@ -45,7 +46,7 @@ func _physics_process(delta: float) -> void:
 		get_tree().reload_current_scene()
 
 func _handle_weapon_swap_intent() -> void:
-	if input_intent.wants_secondary and weapons.size() >= 2:
+	if attack_phase == "NONE" and input_intent.wants_secondary and weapons.size() >= 2:
 		active_weapon_index = (active_weapon_index + 1) % weapons.size()
 		_configure_attack_shape()
 
@@ -89,13 +90,13 @@ func _update_state(delta: float) -> void:
 func _try_start_attack() -> void:
 	if attack_phase != "NONE":
 		return
-	var weapon := _get_active_weapon()
-	if weapon.is_empty():
+	attack_weapon = _get_active_weapon().duplicate(true)
+	if attack_weapon.is_empty():
 		return
-	if !stamina.spend(float(weapon.get("resource_cost", 0))):
+	if !stamina.spend(float(attack_weapon.get("resource_cost", 0))):
 		return
 	attack_phase = "STARTUP"
-	attack_timer = float(weapon.get("startup_ms", 0)) / 1000.0
+	attack_timer = float(attack_weapon.get("startup_ms", 0)) / 1000.0
 	last_hit_target = "-"
 	last_hit_damage = 0
 	last_stagger_applied = 0.0
@@ -106,38 +107,41 @@ func _update_attack_state(delta: float) -> void:
 	attack_timer -= delta
 	if attack_timer > 0.0:
 		return
-	var weapon := _get_active_weapon()
 	if attack_phase == "STARTUP":
 		attack_phase = "ACTIVE"
-		attack_timer = float(weapon.get("active_ms", 0)) / 1000.0
+		attack_timer = float(attack_weapon.get("active_ms", 0)) / 1000.0
 		hitbox_active = true
 		attack_collision.disabled = false
 		active_window_hit_targets.clear()
 		_resolve_hits()
 	elif attack_phase == "ACTIVE":
 		attack_phase = "RECOVERY"
-		attack_timer = float(weapon.get("recovery_ms", 0)) / 1000.0
+		attack_timer = float(attack_weapon.get("recovery_ms", 0)) / 1000.0
 		hitbox_active = false
 		attack_collision.disabled = true
 	elif attack_phase == "RECOVERY":
 		attack_phase = "NONE"
+		attack_weapon = {}
 
 func _resolve_hits() -> void:
-	var weapon := _get_active_weapon()
 	for body in attack_area.get_overlapping_areas():
 		if body is HurtboxComponent:
 			var target_name := body.get_parent().name if body.get_parent() else body.name
 			if active_window_hit_targets.has(target_name):
 				continue
 			active_window_hit_targets[target_name] = true
-			var stagger_amount := float(weapon.get("stagger_value", 0))
+			var stagger_amount := float(attack_weapon.get("stagger_value", 0))
 			body.apply_hit(base_damage, stagger_amount, self)
 			last_hit_target = target_name
 			last_hit_damage = base_damage
 			last_stagger_applied = stagger_amount
 			Engine.time_scale = 0.05
-			await get_tree().create_timer(float(weapon.get("hit_stop_ms", 0)) / 1000.0, true, false, true).timeout
+			await get_tree().create_timer(float(attack_weapon.get("hit_stop_ms", 0)) / 1000.0, true, false, true).timeout
 			Engine.time_scale = 1.0
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
+
 
 func _set_weapon_by_id(weapon_id: String) -> void:
 	for i in range(weapons.size()):
