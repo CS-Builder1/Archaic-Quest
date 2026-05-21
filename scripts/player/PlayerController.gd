@@ -31,6 +31,25 @@ var last_stagger_applied: float = 0.0
 var attack_weapon: Dictionary = {}
 
 func _ready() -> void:
+	# Programmatic visual representation for the player
+	var poly := Polygon2D.new()
+	poly.name = "BodyVisual"
+	poly.polygon = PackedVector2Array([
+		Vector2(20, 0),    # Tip pointing right (facing)
+		Vector2(-16, -14), # Bottom left
+		Vector2(-8, 0),    # Rear indent
+		Vector2(-16, 14)   # Top left
+	])
+	poly.color = Color("bf5b30") # premium rust orange
+	add_child(poly)
+
+	# Programmatic collision shape for physical movement
+	var col := CollisionShape2D.new()
+	var col_shape := CircleShape2D.new()
+	col_shape.radius = 16.0
+	col.shape = col_shape
+	add_child(col)
+
 	weapons = WeaponLibrary.load_barbarian_weapons()
 	_set_weapon_by_id("barbarian_heavy_axe")
 	attack_collision.disabled = true
@@ -42,8 +61,23 @@ func _physics_process(delta: float) -> void:
 	_update_attack_state(delta)
 	_update_state(delta)
 	move_and_slide()
+	_update_visuals()
 	if Input.is_action_just_pressed("reload_test_scene"):
 		get_tree().reload_current_scene()
+
+func _update_visuals() -> void:
+	var visual = get_node_or_null("BodyVisual")
+	if visual is Polygon2D:
+		if state == "DODGING":
+			visual.color = Color("38b2ac") # premium cyan/teal
+		elif attack_phase == "STARTUP":
+			visual.color = Color("ecc94b") # premium golden yellow
+		elif attack_phase == "ACTIVE":
+			visual.color = Color("e53e3e") # premium active crimson/red
+		elif attack_phase == "RECOVERY":
+			visual.color = Color("718096") # premium muted slate gray
+		else:
+			visual.color = Color("bf5b30") # premium rust orange (idle/moving)
 
 func _handle_weapon_swap_intent() -> void:
 	if attack_phase == "NONE" and input_intent.wants_secondary and weapons.size() >= 2:
@@ -157,13 +191,13 @@ func _configure_attack_shape() -> void:
 	var weapon := _get_active_weapon()
 	var reach := float(weapon.get("reach", 2.0))
 	var radius := 36.0
-	var angle_span := deg_to_rad(65.0)
+	var _angle_span := deg_to_rad(65.0)
 	if weapon.get("id", "") == "barbarian_heavy_axe":
 		radius = 52.0
-		angle_span = deg_to_rad(105.0)
+		_angle_span = deg_to_rad(105.0)
 	elif weapon.get("id", "") == "barbarian_maul":
 		radius = 46.0
-		angle_span = deg_to_rad(55.0)
+		_angle_span = deg_to_rad(55.0)
 	var shape := CapsuleShape2D.new()
 	shape.radius = radius
 	shape.height = reach * 24.0
