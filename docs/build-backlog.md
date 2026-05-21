@@ -38,6 +38,8 @@ Status: P0 COMPLETE. See Gate M1 in `docs/acceptance-tests.md`; P1 sprint/contro
 
 Goal: make combat real before adding content.
 
+Status: COMPLETE. See Gate M2 in docs/acceptance-tests.md.
+
 | ID | Task | Priority | Done When |
 |---|---|---|---|
 | M2-001 | Create CombatActor base class | P0 | Player/enemies share health/status hooks |
