@@ -80,3 +80,14 @@ The slice passes only if all are true:
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
 
+
+## M5 — Class Switching and Ranged/Caster Readability
+
+- [ ] Debug class switch toggles between Barbarian, Archer, Mage in-test.
+- [ ] Archer loads Longbow and Shortbow and both are selectable.
+- [ ] Mage loads Fire Staff and Ember Focus and both are selectable.
+- [ ] Archer attack resolves as ranged projectile-like pressure (not melee reach extension).
+- [ ] Longbow has slower startup and stronger payoff than Shortbow.
+- [ ] Mage attacks consume mana through ManaComponent.
+- [ ] Mage attacks use startup/active/recovery cast commitment.
+- [ ] Mage AoE/burn pressure is readable through active area behavior and debug state.
