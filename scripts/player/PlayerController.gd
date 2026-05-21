@@ -5,6 +5,8 @@ class_name PlayerController
 @export var dodge_speed: float = 520.0
 @export var dodge_duration: float = 0.18
 @export var dodge_recovery: float = 0.22
+@export var primary_attack_range: float = 96.0
+@export var primary_attack_arc_degrees: float = 70.0
 
 @onready var camera: Camera2D = $Camera2D
 @onready var input_intent: PlayerInputIntent = $PlayerInputIntent
@@ -44,7 +46,7 @@ func _physics_process(delta: float) -> void:
 	if input_intent.wants_secondary:
 		_swap_weapon()
 
-	if input_intent.wants_primary:
+	if input_intent.wants_primary and _can_process_primary_attack():
 		_process_attack()
 
 func _update_facing() -> void:
@@ -107,6 +109,9 @@ func _swap_weapon() -> void:
 	active_weapon_index = (active_weapon_index + 1) % weapons.size()
 	EventBus.debug_message.emit("Weapon swapped to %s" % get_active_weapon())
 
+func _can_process_primary_attack() -> bool:
+	return state == "IDLE" or state == "MOVING"
+
 func _process_attack() -> void:
 	var target := _find_attack_target()
 	if target == null:
@@ -124,11 +129,36 @@ func _find_attack_target() -> Node:
 	var world := get_tree().current_scene
 	if world == null:
 		return null
+
+	var potential_targets: Array[Node] = []
+	potential_targets.append_array(get_tree().get_nodes_in_group("enemies"))
+	potential_targets.append_array(get_tree().get_nodes_in_group("combat_dummies"))
+
 	if world.has_node("CombatDummy"):
-		return world.get_node("CombatDummy")
+		potential_targets.append(world.get_node("CombatDummy"))
 	if world.has_node("Enemy"):
-		return world.get_node("Enemy")
-	return null
+		potential_targets.append(world.get_node("Enemy"))
+
+	var max_angle := deg_to_rad(primary_attack_arc_degrees * 0.5)
+	var best_target: Node = null
+	var best_distance := INF
+
+	for target in potential_targets:
+		if target == null or not is_instance_valid(target) or not (target is Node2D):
+			continue
+		var target_2d := target as Node2D
+		var to_target := target_2d.global_position - global_position
+		var distance := to_target.length()
+		if distance > primary_attack_range or distance <= 0.001:
+			continue
+		var direction := to_target / distance
+		if facing_direction.angle_to(direction) > max_angle:
+			continue
+		if distance < best_distance:
+			best_distance = distance
+			best_target = target
+
+	return best_target
 
 func _update_resources_on_attack() -> void:
 	match active_class:
