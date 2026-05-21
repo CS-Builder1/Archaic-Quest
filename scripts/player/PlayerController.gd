@@ -55,12 +55,14 @@ func _process_hit_stop(delta: float) -> bool:
 func _try_primary_attack() -> void:
 	if !input_intent.wants_primary:
 		return
-	if !stamina_component.spend(PRIMARY_ATTACK_COST):
+	if stamina_component.current_stamina < PRIMARY_ATTACK_COST:
 		return
-	attack_state_machine.request_primary_attack({
+	var attack_started := attack_state_machine.request_primary_attack({
 		"attack_id": "barbarian_primary",
 		"weapon_id": "barbarian_heavy_axe",
 	})
+	if attack_started:
+		stamina_component.spend(PRIMARY_ATTACK_COST)
 
 func _update_facing() -> void:
 	var to_mouse := input_intent.aim_world_position - global_position
