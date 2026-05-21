@@ -12,6 +12,7 @@ class_name PlayerController
 @onready var stamina: StaminaComponent = $StaminaComponent
 @onready var attack_area: Area2D = $AttackArea
 @onready var attack_collision: CollisionShape2D = $AttackArea/CollisionShape2D
+@onready var self_hurtbox: HurtboxComponent = $HurtboxComponent
 
 var facing_direction: Vector2 = Vector2.RIGHT
 var state: String = "IDLE"
@@ -220,6 +221,8 @@ func _resolve_hits() -> void:
 		print("[HITBOX DEBUG] Overlapping areas: ", areas)
 	for body in areas:
 		print("[HITBOX DEBUG] Checking body: ", body.name, " (class: ", body.get_class(), ", script: ", body.get_script(), ")")
+		if body == self_hurtbox:
+			continue
 		if body is HurtboxComponent:
 			var target_name := body.get_parent().name if body.get_parent() else body.name
 			if active_window_hit_targets.has(target_name):
