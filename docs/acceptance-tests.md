@@ -82,3 +82,14 @@ The slice passes only if all are true:
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
 
+
+## Milestone 3 — Barbarian Heavy Axe / Maul Arena Proof
+
+- [x] Heavy Axe and Maul load from `data/weapons/weapons.slice.json`.
+- [x] Player can swap Heavy Axe and Maul in test arena.
+- [x] Primary attack uses startup/active/recovery/hit-stop/stagger/reach/resource-cost from active weapon.
+- [x] Stamina is spent on attack start.
+- [x] Heavy Axe has wider attack area; Maul has narrower attack area and higher stagger.
+- [x] Stationary combat dummy has HealthComponent, HurtboxComponent, and StaggerComponent.
+- [x] Debug overlay shows weapon, timing, phase, stamina, hitbox state, last hit target, last hit damage, and last stagger.
+- [x] One active window cannot hit the same target multiple times.
