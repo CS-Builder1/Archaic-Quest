@@ -1,0 +1,44 @@
+[gd_scene load_steps=8 format=3 uid="uid://b7qen0t3om5kw"]
+
+[ext_resource type="Script" path="res://scripts/ai/FormationEncounter.gd" id="1_f0u4w"]
+[ext_resource type="Script" path="res://scripts/player/ThreatTargetDummy.gd" id="2_2ep1g"]
+[ext_resource type="Script" path="res://scripts/ai/AIController.gd" id="3_12lkk"]
+
+[node name="AIFormationEncounter" type="Node2D"]
+script = ExtResource("1_f0u4w")
+
+[node name="PlayerDummy" type="CharacterBody2D" parent="."]
+position = Vector2(358, 236)
+script = ExtResource("2_2ep1g")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerDummy"]
+
+[node name="MagmaBrute" type="CharacterBody2D" parent="."]
+position = Vector2(134, 168)
+script = ExtResource("3_12lkk")
+
+[node name="DebugStateLabel" type="Label" parent="MagmaBrute"]
+offset_left = -62.0
+offset_top = -58.0
+offset_right = 114.0
+offset_bottom = -6.0
+
+[node name="AshScavenger" type="CharacterBody2D" parent="."]
+position = Vector2(128, 298)
+script = ExtResource("3_12lkk")
+
+[node name="DebugStateLabel" type="Label" parent="AshScavenger"]
+offset_left = -60.0
+offset_top = -58.0
+offset_right = 116.0
+offset_bottom = -6.0
+
+[node name="EmberTender" type="CharacterBody2D" parent="."]
+position = Vector2(84, 238)
+script = ExtResource("3_12lkk")
+
+[node name="DebugStateLabel" type="Label" parent="EmberTender"]
+offset_left = -58.0
+offset_top = -58.0
+offset_right = 118.0
+offset_bottom = -6.0
