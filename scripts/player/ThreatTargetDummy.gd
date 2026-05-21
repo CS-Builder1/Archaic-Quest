@@ -9,6 +9,25 @@ class_name ThreatTargetDummy
 func _ready() -> void:
 	add_to_group("player")
 
+	# Programmatic visual representation for the player dummy (rust-orange triangle)
+	var poly := Polygon2D.new()
+	poly.name = "BodyVisual"
+	poly.polygon = PackedVector2Array([
+		Vector2(20, 0),    # Tip pointing right (facing)
+		Vector2(-16, -14), # Bottom left
+		Vector2(-8, 0),    # Rear indent
+		Vector2(-16, 14)   # Top left
+	])
+	poly.color = Color("bf5b30") # premium rust orange
+	add_child(poly)
+
+	# Programmatic collision shape for physical movement
+	var col := CollisionShape2D.new()
+	var col_shape := CircleShape2D.new()
+	col_shape.radius = 16.0
+	col.shape = col_shape
+	add_child(col)
+
 func _physics_process(_delta: float) -> void:
 	velocity = Input.get_vector("move_left", "move_right", "move_up", "move_down") * move_speed
 	move_and_slide()
