@@ -39,6 +39,8 @@ The build cannot move beyond single-class combat until these pass.
 - [ ] Support protection behavior works.
 - [ ] Skirmishers punish tunnel vision.
 - [ ] AI behavior is not just nearest-target aggro.
+- [ ] Formation encounter scene contains Brute + Scavenger + Tender operating together.
+- [ ] Debug readout shows each AI state and current target.
 
 ## Gate E — Item / Crafting Proof
 
@@ -80,3 +82,25 @@ The slice passes only if all are true:
 7. At least one world reaction is visible without reading documentation.
 8. No out-of-scope MMO features were added before the slice proved weight, clarity, and consequence.
 
+
+## Milestone 3 — Barbarian Heavy Axe / Maul Arena Proof
+
+- [x] Heavy Axe and Maul load from `data/weapons/weapons.slice.json`.
+- [x] Player can swap Heavy Axe and Maul in test arena.
+- [x] Primary attack uses startup/active/recovery/hit-stop/stagger/reach/resource-cost from active weapon.
+- [x] Stamina is spent on attack start.
+- [x] Heavy Axe has wider attack area; Maul has narrower attack area and higher stagger.
+- [x] Stationary combat dummy has HealthComponent, HurtboxComponent, and StaggerComponent.
+- [x] Debug overlay shows weapon, timing, phase, stamina, hitbox state, last hit target, last hit damage, and last stagger.
+- [x] One active window cannot hit the same target multiple times.
+
+## M5 — Class Switching and Ranged/Caster Readability
+
+- [x] Debug class switch toggles between Barbarian, Archer, Mage in-test.
+- [x] Archer loads Longbow and Shortbow and both are selectable.
+- [x] Mage loads Fire Staff and Ember Focus and both are selectable.
+- [x] Archer attack resolves as ranged projectile-like pressure (not melee reach extension).
+- [x] Longbow has slower startup and stronger payoff than Shortbow.
+- [x] Mage attacks consume mana through ManaComponent.
+- [x] Mage attacks use startup/active/recovery cast commitment.
+- [x] Mage AoE/burn pressure is readable through active area behavior and debug state.
